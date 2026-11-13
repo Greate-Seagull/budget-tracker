@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">Budget Tracker</string>
+
+    <!--    Transaction type string-->
+    <string name="transaction_expense">Chi tiêu</string>
+    <string name="transaction_income">Thu nhập</string>
+
 </resources>
