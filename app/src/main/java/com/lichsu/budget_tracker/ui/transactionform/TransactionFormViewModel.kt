@@ -3,6 +3,12 @@ package com.lichsu.budget_tracker.ui.transactionform
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.navigation.toRoute
+import com.lichsu.budget_tracker.R
+import com.lichsu.budget_tracker.data.local.AppDatabase
+import com.lichsu.budget_tracker.data.repository.BudgetRepository
+import com.lichsu.budget_tracker.ui.navigation.TransactionForm
+import com.lichsu.budget_tracker.ui.transactionform.components.CategoryUi
 import com.lichsu.budget_tracker.data.local.entity.transactions.TransactionEntity
 import com.lichsu.budget_tracker.data.local.entity.transactions.TransactionType
 import com.lichsu.budget_tracker.data.repository.transactions.RoomTransactionRepository
@@ -11,8 +17,11 @@ import com.lichsu.budget_tracker.domain.AmountValidator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import jakarta.inject.Inject
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -23,35 +32,35 @@ import kotlin.coroutines.cancellation.CancellationException
 @HiltViewModel
 class TransactionFormViewModel @Inject constructor(
     private val repo: RoomTransactionRepository,
+    private val budgets: BudgetRepository,
+    db: AppDatabase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
 
     companion object {
-        const val ARG_TRANSACTION_ID = "transactionId"
+
         private const val MAX_DIGITS = 12
     }
 
     // domain
-    private val editingId: Long? = savedStateHandle.get<Long>(ARG_TRANSACTION_ID)?.takeIf { it > 0 }
+    private val editingId: Long? = savedStateHandle.toRoute<TransactionForm>().id?.takeIf { it > 0 }
 
     private var original: TransactionEntity? = null
 
     // infra
-    private val _uiState = MutableStateFlow(TransactionFormUiState())
-    val uiState = _uiState.asStateFlow()
+    private val _uiState = MutableStateFlow(TransactionFormUiState(isEditing = editingId != null))
+    val uiState = combine(_uiState, db.categoryDao().observeAll()) { state, categories ->
+        state.copy(
+            categories = categories.filter { it.type == state.type }
+                .map { CategoryUi(it.id, it.name, R.drawable.ic_category) },
+        )
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), TransactionFormUiState())
     private val _events = Channel<TransactionFormEvent>(Channel.BUFFERED)
     val events = _events.receiveAsFlow()
 
     init {
-        // Danh mục luôn lọc theo loại đang chọn
-//        viewModelScope.launch {
-//            _uiState
-//                .map { it.type }
-//                .distinctUntilChanged()
-//                .flatMapLatest { repository.observeCategories(it) }
-//                .collect { list -> _uiState.update { it.copy(categories = list) } }
-//        }
+
 
         editingId?.let { id ->
             viewModelScope.launch {
@@ -109,7 +118,7 @@ class TransactionFormViewModel @Inject constructor(
 
     fun save() {
         val input = _uiState.value
-        if (input.isSaving)
+        if (input.isSaving || (editingId != null && original == null))
             return
 
         // Validation
@@ -140,18 +149,16 @@ class TransactionFormViewModel @Inject constructor(
                     note = input.note,
                     createdAt = original?.createdAt ?: System.currentTimeMillis()
                 )
-                if (original == null)
-                    repo.insert(transaction)
-                else
-                    repo.update(transaction)
-
-                // TODO(F05): khi TV3 có BudgetChecker, gọi ở đây (khoảng 3 dòng):
-                //   if (s.type == TxType.EXPENSE) {
-                //       val status = budgetChecker.check(categoryId, YearMonth.from(s.date))
-                //       // truyền status cho màn danh sách để hiện Snackbar
-                //   }
-
-                _events.send(TransactionFormEvent.Saved)
+                val persist: suspend () -> Unit = {
+                    if (original == null) repo.insert(transaction) else repo.update(transaction)
+                }
+                val warnings = if (transaction.type == TransactionType.EXPENSE) {
+                    budgets.saveExpense(transaction, persist)
+                } else {
+                    persist()
+                    emptyList()
+                }
+                _events.send(TransactionFormEvent.Saved(warnings))
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
