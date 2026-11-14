@@ -4,6 +4,8 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -17,6 +19,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.ui.res.stringResource
+import com.lichsu.budget_tracker.data.local.dao.BudgetUsage
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -55,7 +60,8 @@ private fun TransactionFormScreenPreview() {
 @Composable
 fun TransactionFormRoute(
     viewModel: TransactionFormViewModel = hiltViewModel(),
-    onNavigateBack: () -> Unit = {}
+    onNavigateBack: () -> Unit = {},
+    onSaved: (List<BudgetUsage>) -> Unit = { onNavigateBack() },
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -76,7 +82,7 @@ fun TransactionFormRoute(
     LaunchedEffect(Unit) {
         viewModel.events.collect { event ->
             when (event) {
-                TransactionFormEvent.Saved,
+                is TransactionFormEvent.Saved -> onSaved(event.budgetWarnings)
                 TransactionFormEvent.Deleted -> onNavigateBack()
 
                 is TransactionFormEvent.Error ->
@@ -121,13 +127,17 @@ fun TransactionFormScreen(
             ){
                 IconButton(R.drawable.ic_back, onNavigateBack)
 
-                NormalText("Ghi nhận giao dịch")
+                NormalText(stringResource(R.string.tv3_transaction_title))
 
-                ConfirmAction(
-                    title = "Xóa giao dịch?",
-                    onConfirmed = onDeleteConfirmed
-                ) {
-                    open -> IconButton(R.drawable.ic_delete, onClick = open)
+                if (uiState.isEditing) {
+                    ConfirmAction(
+                        title = stringResource(R.string.tv3_transaction_delete),
+                        onConfirmed = onDeleteConfirmed
+                    ) {
+                        open -> IconButton(R.drawable.ic_delete, onClick = open)
+                    }
+                } else {
+                    Spacer(Modifier.size(40.dp))
                 }
             }
         },
@@ -142,7 +152,7 @@ fun TransactionFormScreen(
             ){
                 SecondaryButton("Hủy bỏ", onClick = onNavigateBack, modifier = Modifier.weight(1f))
 
-                PrimaryButton("Lưu", onClick = onSaved, modifier = Modifier.weight(1f))
+                PrimaryButton(stringResource(R.string.tv3_transaction_save), onClick = onSaved, modifier = Modifier.weight(1f))
             }
         }
     ){
@@ -163,6 +173,9 @@ fun TransactionFormScreen(
             )
 
             AmountInput(value = uiState.amountText, onAmountChanged)
+            if (uiState.amountError != null) {
+                Text(stringResource(R.string.tv3_invalid_amount), color = MaterialTheme.colorScheme.error)
+            }
 
             CategoryPickerSheet(
                 categories = uiState.categories,
@@ -172,9 +185,14 @@ fun TransactionFormScreen(
                 open -> ChoosingButton(
                     icon = R.drawable.ic_category,
                     label = "Phân loại",
-                    value = "Mua sắm",
+                    value = uiState.categories.find { it.id == uiState.selectedCategoryId }?.name
+                        ?: stringResource(R.string.tv3_select),
                     onClick = open
                 )
+            }
+
+            if (uiState.categoryError) {
+                Text(stringResource(R.string.tv3_select_category), color = MaterialTheme.colorScheme.error)
             }
 
             DatePickAction(
