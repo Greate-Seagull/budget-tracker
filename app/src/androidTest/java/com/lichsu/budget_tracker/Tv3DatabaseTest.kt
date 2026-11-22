@@ -8,6 +8,7 @@ import androidx.test.platform.app.InstrumentationRegistry
 import com.lichsu.budget_tracker.data.local.AppDatabase
 import com.lichsu.budget_tracker.data.local.DEFAULT_CATEGORIES
 import com.lichsu.budget_tracker.data.local.MIGRATION_1_2
+import com.lichsu.budget_tracker.data.local.MIGRATION_2_3
 import com.lichsu.budget_tracker.data.local.entity.budgets.BudgetEntity
 import com.lichsu.budget_tracker.data.local.entity.recurring.RecurringRuleEntity
 import com.lichsu.budget_tracker.data.local.entity.transactions.TransactionEntity
@@ -114,7 +115,7 @@ class Tv3DatabaseTest {
                 }).build()
             FrameworkSQLiteOpenHelperFactory().create(v1).use { it.writableDatabase }
             Room.databaseBuilder(context, AppDatabase::class.java, file)
-                .addMigrations(MIGRATION_1_2)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
                 .build().withOpenDatabase { db ->
                     val transaction = db.transactionDao().findById(1)
                     assertEquals(123_000L, transaction?.amount)

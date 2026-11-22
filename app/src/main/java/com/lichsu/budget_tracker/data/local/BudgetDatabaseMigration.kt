@@ -39,7 +39,10 @@ internal val MIGRATION_1_2 = object : Migration(1, 2) {
 }
 
 internal val DEFAULT_CATEGORIES = object : RoomDatabase.Callback() {
-    override fun onCreate(db: SupportSQLiteDatabase) = seedCategories(db)
+    override fun onCreate(db: SupportSQLiteDatabase) {
+        seedCategories(db)
+        backfillCategoryDefaults(db) // TV1: iconKey, isDefault (CategoryMigration.kt)
+    }
 }
 
 private fun seedCategories(db: SupportSQLiteDatabase) {
