@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Chuỗi giao diện của TV1: Cài đặt (màn 6), Danh mục (màn 7, F03). -->
+<resources>
+    <string name="tv1_back">Quay lại</string>
+    <string name="tv1_save">Lưu</string>
+    <string name="tv1_cancel">Hủy bỏ</string>
+    <string name="tv1_delete">Xóa</string>
+
+    <!-- Cài đặt -->
+    <string name="tv1_settings">Cài đặt</string>
+    <string name="tv1_settings_group_manage">Quản lý</string>
+    <string name="tv1_settings_group_data">Dữ liệu</string>
+    <string name="tv1_settings_group_display">Hiển thị</string>
+    <string name="tv1_settings_categories_detail">Thêm, sửa, xóa danh mục thu chi</string>
+    <string name="tv1_settings_recurring">Giao dịch lặp lại</string>
+    <string name="tv1_settings_recurring_detail">Tự ghi các khoản thu chi hằng tháng</string>
+    <string name="tv1_settings_export_csv">Xuất CSV</string>
+    <string name="tv1_settings_export_csv_detail">Lưu giao dịch ra tệp mở được bằng Excel</string>
+    <string name="tv1_settings_backup">Sao lưu</string>
+    <string name="tv1_settings_backup_detail">Lưu toàn bộ dữ liệu ra tệp JSON</string>
+    <string name="tv1_settings_restore">Khôi phục</string>
+    <string name="tv1_settings_restore_detail">Nạp lại dữ liệu từ tệp sao lưu</string>
+    <string name="tv1_settings_sample_data">Nạp dữ liệu mẫu</string>
+    <string name="tv1_settings_sample_data_detail">Thêm giao dịch mẫu để dùng thử</string>
+    <string name="tv1_settings_clear_data">Xóa toàn bộ dữ liệu</string>
+    <string name="tv1_settings_clear_data_detail">Xóa giao dịch, hạn mức và danh mục tự tạo</string>
+    <string name="tv1_settings_theme">Giao diện</string>
+    <string name="tv1_settings_theme_detail">Sáng, tối hoặc theo hệ thống</string>
+    <string name="tv1_coming_soon">%1$s (sắp có)</string>
+
+    <!-- Danh mục -->
+    <string name="tv1_categories">Danh mục</string>
+    <string name="tv1_categories_empty">Chưa có danh mục nào</string>
+    <string name="tv1_categories_empty_detail">Thêm danh mục để phân loại các khoản thu chi.</string>
+    <string name="tv1_category_default">Mặc định, không xóa được</string>
+    <string name="tv1_category_add">Thêm danh mục</string>
+    <string name="tv1_category_add_expense">Thêm danh mục chi tiêu</string>
+    <string name="tv1_category_add_income">Thêm danh mục thu nhập</string>
+    <string name="tv1_category_edit">Sửa danh mục</string>
+    <string name="tv1_category_name">Tên danh mục</string>
+    <string name="tv1_category_icon">Biểu tượng</string>
+    <string name="tv1_category_color">Màu</string>
+    <string name="tv1_category_error_empty">Nhập tên danh mục.</string>
+    <string name="tv1_category_error_duplicate">Loại này đã có danh mục cùng tên.</string>
+    <string name="tv1_category_save_failed">Không thể lưu. Hãy thử lại.</string>
+    <string name="tv1_category_added">Đã thêm danh mục</string>
+    <string name="tv1_category_updated">Đã lưu danh mục</string>
+    <string name="tv1_category_deleted">Đã xóa danh mục</string>
+    <string name="tv1_category_delete_a11y">Xóa %1$s</string>
+    <string name="tv1_category_delete_title">Xóa danh mục “%1$s”?</string>
+    <string name="tv1_category_delete_counting">Đang kiểm tra giao dịch…</string>
+    <string name="tv1_category_delete_no_transactions">Danh mục này chưa có giao dịch nào.</string>
+    <string name="tv1_category_delete_moves">%1$d giao dịch sẽ chuyển sang “%2$s”.</string>
+    <string name="tv1_category_delete_moves_unknown">Các giao dịch của danh mục này sẽ chuyển sang “%1$s”.</string>
+    <string name="tv1_category_delete_side_effects">Hạn mức của danh mục sẽ bị xóa, giao dịch lặp chuyển sang “%1$s”.</string>
+    <string name="tv1_category_delete_default">Không thể xóa danh mục mặc định.</string>
+    <string name="tv1_category_delete_failed">Không thể xóa. Hãy thử lại.</string>
+</resources>

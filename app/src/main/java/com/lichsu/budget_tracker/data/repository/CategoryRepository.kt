@@ -68,7 +68,7 @@ class CategoryRepository @Inject constructor(private val db: AppDatabase) {
 
     /**
      * Xóa danh mục theo SPEC F03: "Khác" không xóa được; giao dịch chuyển sang "Khác" cùng loại;
-     * hạn mức của danh mục bị xóa. Quy tắc lặp cũng chuyển sang "Khác" (đề xuất câu 3, chờ nhóm chốt),
+     * hạn mức của danh mục bị xóa. Quy tắc lặp cũng chuyển sang "Khác" (nhóm chốt 2026-11-23),
      * nếu không khóa ngoại CASCADE sẽ xóa mất quy tắc.
      */
     suspend fun delete(id: Long): CategoryResult = db.withTransaction {

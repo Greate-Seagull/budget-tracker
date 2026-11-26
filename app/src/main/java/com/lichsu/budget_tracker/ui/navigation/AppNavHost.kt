@@ -8,7 +8,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Repeat
+import androidx.compose.material.icons.filled.Settings as SettingsIcon // tránh trùng tên route Settings
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -39,8 +39,11 @@ import androidx.navigation.compose.rememberNavController
 import com.lichsu.budget_tracker.R
 import com.lichsu.budget_tracker.ui.budget.BudgetScreen
 import com.lichsu.budget_tracker.ui.budget.toWarningMessage
+import com.lichsu.budget_tracker.ui.categories.CategoriesScreen
 import com.lichsu.budget_tracker.ui.home.Tv3HomeRoute
 import com.lichsu.budget_tracker.ui.recurring.RecurringScreen
+import com.lichsu.budget_tracker.ui.settings.SettingsScreen
+import com.lichsu.budget_tracker.ui.settings.SubScreenScaffold
 import com.lichsu.budget_tracker.ui.stats.StatsScreen
 import com.lichsu.budget_tracker.ui.transactionform.TransactionFormRoute
 import kotlinx.coroutines.launch
@@ -56,7 +59,8 @@ private val destinations = listOf(
     Destination(Home, R.string.tv3_home, Icons.Default.Home),
     Destination(Stats, R.string.tv3_stats, Icons.Default.BarChart),
     Destination(Budget, R.string.tv3_budget, Icons.Default.AccountBalanceWallet),
-    Destination(Recurring, R.string.tv3_recurring, Icons.Default.Repeat, R.string.tv3_recurring_tab),
+    // Lặp lại không còn là tab (nhóm chốt 2026-11-23): mở từ Cài đặt, route Recurring giữ nguyên.
+    Destination(Settings, R.string.tv1_settings, Icons.Default.SettingsIcon),
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -131,7 +135,18 @@ fun AppNavHost(navController: NavHostController = rememberNavController()) {
             }
             composable<Stats> { StatsScreen() }
             composable<Budget> { BudgetScreen() }
-            composable<Recurring> { RecurringScreen() }
+            composable<Recurring> {
+                SubScreenScaffold(stringResource(R.string.tv3_recurring), onBack = { navController.popBackStack() }) {
+                    RecurringScreen()
+                }
+            }
+            composable<Settings> {
+                SettingsScreen(
+                    onOpenCategories = { navController.navigate(Categories) },
+                    onOpenRecurring = { navController.navigate(Recurring) },
+                )
+            }
+            composable<Categories> { CategoriesScreen(onBack = { navController.popBackStack() }) }
             composable<TransactionForm> {
                 TransactionFormRoute(
                     onNavigateBack = { navController.popBackStack() },
