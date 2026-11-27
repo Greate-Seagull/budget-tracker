@@ -1,8 +1,9 @@
-package com.lichsu.budget_tracker.ui.transactionform.components
+package com.lichsu.budget_tracker.ui.components.inputs
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -18,79 +19,69 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.OffsetMapping
-import androidx.compose.ui.text.input.TransformedText
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import com.lichsu.budget_tracker.R
+import com.lichsu.budget_tracker.ui.components.ThousandSeparatorTransformation
+import com.lichsu.budget_tracker.ui.components.text.AnimatedErrorText
+import com.lichsu.budget_tracker.ui.components.text.animatedErrorColor
 
 @Composable
-fun AmountInput(
+fun AmountField(
     value: String,
     onValueChange: (String) -> Unit,
     modifier: Modifier = Modifier,
+    errorText: String? = null,
 ) {
+    val container = animatedErrorColor(errorText != null, "amountContainer")
+
+    Column(modifier.fillMaxWidth()) {
+        AmountBox(value, onValueChange, container)
+        AnimatedErrorText(errorText)
+    }
+}
+
+@Composable
+private fun AmountBox(
+    value: String,
+    onValueChange: (String) -> Unit,
+    container: Color,
+) {
+    val content = MaterialTheme.colorScheme.onPrimary
+    val textStyle = MaterialTheme.typography.titleLarge
+
     Row(
-        modifier = modifier
+        modifier = Modifier
             .fillMaxWidth()
             .height(120.dp)
             .clip(MaterialTheme.shapes.medium)
-            .background(MaterialTheme.colorScheme.primary)
+            .background(container)
             .padding(20.dp),
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(
-            text = "₫",
-            color = MaterialTheme.colorScheme.onPrimary,
-            style = MaterialTheme.typography.titleLarge
-        )
+        Text(text = stringResource(R.string.currency_symbol), color = content, style = textStyle)
 
         BasicTextField(
             value = value,
             onValueChange = onValueChange,
             singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            textStyle = MaterialTheme.typography.titleLarge.copy(
-                color = MaterialTheme.colorScheme.onPrimary
-            ),
-            cursorBrush = SolidColor(MaterialTheme.colorScheme.onPrimary),
+            textStyle = textStyle.copy(color = content),
+            cursorBrush = SolidColor(content),
             visualTransformation = remember { ThousandSeparatorTransformation() },
             modifier = Modifier.width(IntrinsicSize.Min),
             decorationBox = { inner ->
                 Box(contentAlignment = Alignment.CenterStart) {
                     if (value.isEmpty()) {
-                        Text(
-                            text = "0",
-                            style = MaterialTheme.typography.titleLarge,
-                            color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.5f),
-                        )
+                        Text(text = "0", style = textStyle, color = content.copy(alpha = 0.5f))
                     }
                     inner()
                 }
-            }
+            },
         )
-    }
-}
-
-class ThousandSeparatorTransformation : VisualTransformation {
-    override fun filter(text: AnnotatedString): TransformedText {
-        val original = text.text
-        val formatted = original.reversed().chunked(3).joinToString(".").reversed()
-
-        val mapping = object : OffsetMapping {
-            override fun originalToTransformed(offset: Int): Int {
-                val total = if (original.isNotEmpty()) (original.length - 1) / 3 else 0
-                val remaining = original.length - offset
-                val separatorsAfter = if (remaining > 0) (remaining - 1) / 3 else 0
-                return offset + total - separatorsAfter
-            }
-
-            override fun transformedToOriginal(offset: Int): Int =
-                offset - formatted.take(offset).count { it == '.' }
-        }
-        return TransformedText(AnnotatedString(formatted), mapping)
     }
 }
