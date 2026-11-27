@@ -2,7 +2,7 @@ package com.lichsu.budget_tracker.ui.transactionform
 
 import com.lichsu.budget_tracker.data.local.entity.transactions.TransactionType
 import com.lichsu.budget_tracker.domain.AmountError
-import com.lichsu.budget_tracker.ui.transactionform.components.CategoryUi
+import com.lichsu.budget_tracker.ui.categories.CategoryUi
 import java.time.LocalDate
 
 data class TransactionFormUiState(
@@ -18,6 +18,8 @@ data class TransactionFormUiState(
     val isEditing: Boolean = false,
     val amountError: AmountError? = null,
     val categoryError: Boolean = false,
-    val saveError: Boolean = false,
     val isSaving: Boolean = false,
-)
+) {
+    val selectedCategory: CategoryUi?
+        get() = categories.find { it.id == selectedCategoryId }
+}
