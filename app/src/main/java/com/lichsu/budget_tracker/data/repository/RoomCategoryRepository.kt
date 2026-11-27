@@ -12,7 +12,7 @@ class RoomCategoryRepository @Inject constructor(
         return dao.findById(id)
     }
 
-    suspend fun insert(entity: CategoryEntity) {
+    suspend fun insert(entity: CategoryEntity): Long {
         return dao.insert(entity)
     }
 

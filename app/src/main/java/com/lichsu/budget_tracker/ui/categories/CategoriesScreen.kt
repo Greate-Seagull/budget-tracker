@@ -50,9 +50,9 @@ import com.lichsu.budget_tracker.R
 import com.lichsu.budget_tracker.data.local.DEFAULT_CATEGORY_NAME
 import com.lichsu.budget_tracker.data.local.entity.categories.CategoryEntity
 import com.lichsu.budget_tracker.data.local.entity.transactions.TransactionType
+import com.lichsu.budget_tracker.ui.components.buttons.PrimaryButton
+import com.lichsu.budget_tracker.ui.components.inputs.SegmentedSwitch
 import com.lichsu.budget_tracker.ui.settings.SubScreenScaffold
-import com.lichsu.budget_tracker.ui.transactionform.components.Switch
-import com.lichsu.budget_tracker.ui.transactionform.components.buttons.PrimaryButton
 import kotlinx.coroutines.launch
 
 /** Giá trị của editingId khi đang thêm mới. Id thật do Room tạo luôn lớn hơn 0. */
@@ -91,7 +91,7 @@ fun CategoriesScreen(onBack: () -> Unit, viewModel: CategoriesViewModel = hiltVi
         },
     ) {
         Column(Modifier.fillMaxSize()) {
-            Switch(
+            SegmentedSwitch(
                 TransactionType.entries,
                 state.type,
                 viewModel::selectType,

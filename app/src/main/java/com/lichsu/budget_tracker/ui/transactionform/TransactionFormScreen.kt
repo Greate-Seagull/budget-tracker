@@ -26,12 +26,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.lichsu.budget_tracker.R
+import com.lichsu.budget_tracker.data.local.dao.BudgetUsage
 import com.lichsu.budget_tracker.data.local.entity.transactions.TransactionType
 import com.lichsu.budget_tracker.ui.components.buttons.ChoosingButton
 import com.lichsu.budget_tracker.ui.components.buttons.IconButton
@@ -53,6 +54,7 @@ fun TransactionFormRoute(
     viewModel: TransactionFormViewModel = hiltViewModel(),
     onNavigateBack: () -> Unit = {},
     onNotFound: (message: String) -> Unit = {},
+    onSaved: (List<BudgetUsage>) -> Unit,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -62,6 +64,7 @@ fun TransactionFormRoute(
         snackbarHostState = snackbarHostState,
         onNavigateBack = onNavigateBack,
         onNotFound = onNotFound,
+        onSaved = onSaved
     )
 
     TransactionFormScreen(
@@ -84,11 +87,12 @@ private fun CollectFormEvents(
     snackbarHostState: SnackbarHostState,
     onNavigateBack: () -> Unit,
     onNotFound: (String) -> Unit,
+    onSaved: (List<BudgetUsage>) -> Unit,
 ) {
     val currentOnNavigateBack by rememberUpdatedState(onNavigateBack)
     val currentOnNotFound by rememberUpdatedState(onNotFound)
     val notFoundMessage = stringResource(R.string.form_not_found)
-    val context = LocalContext.current
+    val resources by rememberUpdatedState(LocalResources.current)
 
     LaunchedEffect(events) {
         events.collect { event ->
@@ -99,9 +103,8 @@ private fun CollectFormEvents(
 
                 is TransactionFormEvent.Saved -> onSaved(event.budgetWarnings)
 
-                is TransactionFormEvent.Error -> {
-                    snackbarHostState.showSnackbar(context.getString(event.messageRes))
-                }
+                is TransactionFormEvent.Error ->
+                    snackbarHostState.showSnackbar(resources.getString(event.messageRes))
             }
         }
     }

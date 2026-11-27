@@ -2,6 +2,7 @@ package com.lichsu.budget_tracker.util
 
 import java.text.NumberFormat
 import java.util.Locale
+import kotlin.math.abs
 
 object MoneyFormat {
     private val vietnamese = Locale.forLanguageTag("vi-VN")

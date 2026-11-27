@@ -20,7 +20,7 @@ import com.lichsu.budget_tracker.data.local.entity.transactions.TransactionEntit
         BudgetEntity::class,
         RecurringRuleEntity::class,
     ],
-    version = 4,
+    version = 5,
     exportSchema = false,
 )
 @TypeConverters(Converters::class)

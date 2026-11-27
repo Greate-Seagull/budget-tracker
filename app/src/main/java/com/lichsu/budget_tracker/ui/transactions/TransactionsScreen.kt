@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.FabPosition
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -18,8 +17,8 @@ import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.lichsu.budget_tracker.ui.components.layout.MonthSwitcher
 import com.lichsu.budget_tracker.ui.components.buttons.NormalIcon
+import com.lichsu.budget_tracker.ui.components.layout.MonthSwitcher
 import com.lichsu.budget_tracker.ui.transactions.components.EmptyTransactions
 import com.lichsu.budget_tracker.ui.transactions.components.MonthSummary
 import com.lichsu.budget_tracker.ui.transactions.components.TransactionList
@@ -70,8 +69,8 @@ fun TransactionsScreen(
                 onFilterApplied = onFilterApplied,
             )
         },
-        floatingActionButton = { AddTransactionFab(onClick = onAddTransaction) },
-        floatingActionButtonPosition = FabPosition.Center,
+//        floatingActionButton = { AddTransactionFab(onClick = onAddTransaction) },
+//        floatingActionButtonPosition = FabPosition.Center,
     ) { inner ->
         TransactionsContent(
             uiState = uiState,
