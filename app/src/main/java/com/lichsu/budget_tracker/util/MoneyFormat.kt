@@ -14,3 +14,13 @@ object MoneyFormat {
         maximumFractionDigits = 1
     }.format(ratio)
 }
+
+/** "+1,000" / "-1,000" / "0". */
+fun formatAmount(amount: Long, format: NumberFormat): String {
+    val sign = when {
+        amount == 0L -> ""
+        amount > 0L -> "+"
+        else -> "-"
+    }
+    return sign + format.format(abs(amount))
+}
