@@ -18,3 +18,6 @@ val Primary = Color(0xFF008B8B)
 val PrimaryContrast = Color.White
 val Secondary = Color(0xFFEEECFF)
 val Tertiary = Color(0xFF9CA3AF)
+val Error = Color(0xFFDA291C)
+
+val LittleWarning = Color(0xFFBB2649)

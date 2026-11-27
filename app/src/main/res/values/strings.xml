@@ -1,8 +1,74 @@
 <resources>
     <string name="app_name">Budget Tracker</string>
 
-    <!--    Transaction type string-->
+    <!-- ===== Dùng chung ===== -->
+    <string name="action_ok">OK</string>
+    <string name="action_cancel">Hủy</string>
+    <string name="action_confirm">Xác nhận</string>
+    <string name="action_select">Chọn</string>
+    <string name="action_clear">Xóa</string>
+    <string name="action_reset">Đặt lại</string>
+    <string name="action_apply">Áp dụng</string>
+    <string name="action_save">Lưu</string>
+    <string name="action_saving">Đang lưu...</string>
+    <string name="currency_symbol">₫</string>
+
+    <string name="search_placeholder">Tìm kiếm...</string>
+    <string name="search_cd">Tìm kiếm</string>
+
+    <!-- ===== Loại giao dịch ===== -->
     <string name="transaction_expense">Chi tiêu</string>
     <string name="transaction_income">Thu nhập</string>
 
+    <!-- ===== Ngày tháng ===== -->
+    <string name="day_yesterday">Hôm qua</string>
+    <string name="day_today">Hôm nay</string>
+    <string name="day_tomorrow">Ngày mai</string>
+    <string name="month_year">Tháng %1$d, %2$d</string>
+
+    <!-- ===== Danh sách giao dịch ===== -->
+    <string name="month_total">Tổng</string>
+    <string name="transactions_empty">Bạn chưa có giao dịch nào</string>
+    <string name="add_first_transaction">Thêm giao dịch mới ngay</string>
+
+    <!-- ===== Bộ lọc ===== -->
+    <string name="filter_title">Bộ lọc</string>
+    <string name="filter_type">Loại</string>
+    <string name="filter_category">Danh mục</string>
+    <string name="filter_date">Ngày giao dịch</string>
+    <string name="filter_price_range">Khoảng giá</string>
+
+    <!-- Bộ lọc: khoảng ngày -->
+    <string name="date_preset_today">Hôm nay</string>
+    <string name="date_preset_yesterday">Hôm qua</string>
+    <string name="date_preset_last_7">7 ngày qua</string>
+    <string name="date_preset_last_30">30 ngày qua</string>
+    <string name="date_preset_last_90">90 ngày qua</string>
+    <string name="date_preset_this_month">Tháng này</string>
+    <string name="date_preset_last_month">Tháng trước</string>
+    <string name="date_preset_this_year">Năm nay</string>
+    <string name="date_from">Từ</string>
+    <string name="date_to">Đến</string>
+
+    <!-- Bộ lọc: khoảng giá -->
+    <string name="price_min">Tối thiểu</string>
+    <string name="price_max">Tối đa</string>
+
+    <!-- ===== Form giao dịch ===== -->
+    <string name="form_title_new">Ghi giao dịch</string>
+    <string name="form_title_edit">Sửa giao dịch</string>
+    <string name="form_category_label">Phân loại</string>
+    <string name="form_category_placeholder">Chọn ngay</string>
+    <string name="form_category_error">Vui lòng chọn danh mục</string>
+    <string name="form_date_label">Ngày thực hiện</string>
+    <string name="form_note_hint">Ghi chú</string>
+    <string name="form_delete_title">Xóa giao dịch?</string>
+    <string name="form_not_found">Giao dịch không tồn tại</string>
+    <string name="form_save_error">Không thể lưu, thử lại sau</string>
+    <string name="form_delete_error">Không thể xóa, thử lại sau</string>
+
+    <!-- ===== Chọn danh mục ===== -->
+    <string name="category_picker_title">Chọn danh mục</string>
+    <string name="category_search_placeholder">Tìm danh mục</string>
+    <string name="category_not_found">Không tìm thấy</string>
 </resources>
