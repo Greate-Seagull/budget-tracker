@@ -1,21 +1,24 @@
 package com.lichsu.budget_tracker.ui.navigation
 
 import androidx.annotation.StringRes
+import androidx.compose.animation.core.EaseIn
+import androidx.compose.animation.core.EaseOutSine
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBalanceWallet
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.BarChart
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Settings as SettingsIcon // tránh trùng tên route Settings
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Receipt
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
+import androidx.compose.material3.FabPosition
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -46,24 +49,47 @@ import com.lichsu.budget_tracker.ui.settings.SettingsScreen
 import com.lichsu.budget_tracker.ui.settings.SubScreenScaffold
 import com.lichsu.budget_tracker.ui.stats.StatsScreen
 import com.lichsu.budget_tracker.ui.transactionform.TransactionFormRoute
+import com.lichsu.budget_tracker.ui.transactions.TransactionsRoute
 import kotlinx.coroutines.launch
+import androidx.compose.material.icons.filled.Settings as SettingsIcon
 
-private data class Destination(
+private const val PARALLAX = 4 // màn cũ chỉ dịch 1/4 chiều rộng
+
+data class BarAction(
+    val icon: ImageVector,
+    @param:StringRes val description: Int,
+    val onClick: (NavHostController) -> Unit,
+)
+
+data class Destination(
     val route: Any,
     @param:StringRes val title: Int,
     val icon: ImageVector,
     @param:StringRes val label: Int = title,
+    val showTopBar: Boolean = true, // false: màn hình tự lo topBar
+    val action: BarAction? = null,  // nút tròn bên phải bar, null: không hiện
 )
 
 private val destinations = listOf(
-    Destination(Home, R.string.tv3_home, Icons.Default.Home),
+    Destination(
+        route = Transactions,
+        title = R.string.transactions_screen_title,
+        icon = Icons.Default.Receipt,
+        showTopBar = false,
+        action = BarAction(Icons.Default.Add, R.string.form_title_new) {
+            it.navigate(TransactionForm())
+        },
+    ),
     Destination(Stats, R.string.tv3_stats, Icons.Default.BarChart),
-    Destination(Budget, R.string.tv3_budget, Icons.Default.AccountBalanceWallet),
+    Destination(
+        route = Budget,
+        title = R.string.tv3_budget,
+        icon = Icons.Default.AccountBalanceWallet,
+    ),
     // Lặp lại không còn là tab (nhóm chốt 2026-11-23): mở từ Cài đặt, route Recurring giữ nguyên.
     Destination(Settings, R.string.tv1_settings, Icons.Default.SettingsIcon),
 )
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppNavHost(navController: NavHostController = rememberNavController()) {
     val entry by navController.currentBackStackEntryAsState()
@@ -72,13 +98,12 @@ fun AppNavHost(navController: NavHostController = rememberNavController()) {
     val snackbar = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
+    val back: () -> Unit = { navController.popBackStack() }
 
-    fun select(route: Any) {
-        navController.navigate(route) {
-            popUpTo(navController.graph.findStartDestination().id) { saveState = true }
-            launchSingleTop = true
-            restoreState = true
-        }
+    fun select(route: Any) = navController.navigate(route) {
+        popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+        launchSingleTop = true
+        restoreState = true
     }
 
     Scaffold(
@@ -86,45 +111,39 @@ fun AppNavHost(navController: NavHostController = rememberNavController()) {
         contentColor = colors.onBackground,
         contentWindowInsets = WindowInsets(0),
         snackbarHost = { SnackbarHost(snackbar) },
-        topBar = {
-            if (active != null) {
-                CenterAlignedTopAppBar(
-                    title = {
-                        Text(stringResource(active.title), style = MaterialTheme.typography.bodyLarge)
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = colors.background,
-                        titleContentColor = colors.onBackground,
-                    ),
+
+        topBar = { active?.takeIf { it.showTopBar }?.let { HostTopBar(it) } },
+
+        floatingActionButtonPosition = FabPosition.Center,
+        floatingActionButton = {
+            active?.let {
+                FloatingBottomBar(
+                    destinations = destinations,
+                    active = it,
+                    onSelect = { dest -> select(dest.route) },
+                    onActionClick = { action -> action.onClick(navController) },
                 )
             }
         },
-        bottomBar = {
-            if (active != null) {
-                NavigationBar(containerColor = colors.secondary) {
-                    destinations.forEach { destination ->
-                        NavigationBarItem(
-                            selected = destination == active,
-                            onClick = { if (destination != active) select(destination.route) },
-                            icon = { Icon(destination.icon, contentDescription = null) },
-                            label = { Text(stringResource(destination.label)) },
-                            colors = NavigationBarItemDefaults.colors(
-                                selectedIconColor = colors.onPrimary,
-                                selectedTextColor = colors.onSecondary,
-                                indicatorColor = colors.primary,
-                                unselectedIconColor = colors.onSecondary,
-                                unselectedTextColor = colors.onSecondary,
-                            ),
-                        )
-                    }
-                }
-            }
-        },
+//        bottomBar = {
+//            active?.let {
+//                FloatingBottomBar(
+//                    destinations = destinations,
+//                    active = it,
+//                    onSelect = { dest -> select(dest.route) },
+//                    onActionClick = { action -> action.onClick(navController) },
+//                )
+//            }
+//        },
     ) { padding ->
         NavHost(
-            navController,
-            startDestination = Home,
+            navController = navController,
+            startDestination = Transactions,
             modifier = Modifier.padding(padding).consumeWindowInsets(padding),
+            enterTransition = { slideInHorizontally(tween(560, easing = EaseOutSine)) { it } },
+            exitTransition = { slideOutHorizontally(tween(560, easing = EaseOutSine)) { -it / PARALLAX } },
+            popEnterTransition = { slideInHorizontally(tween(500, easing = EaseIn)) { -it / PARALLAX } },
+            popExitTransition = { slideOutHorizontally(tween(500, easing = EaseIn)) { it } },
         ) {
             composable<Home> {
                 Tv3HomeRoute(
@@ -133,12 +152,16 @@ fun AppNavHost(navController: NavHostController = rememberNavController()) {
                     onEditTransaction = { navController.navigate(TransactionForm(it)) },
                 )
             }
+            composable<Transactions> {
+                TransactionsRoute(
+                    onAddTransaction = { navController.navigate(TransactionForm()) },
+                    onModifyTransaction = { navController.navigate(TransactionForm(it)) },
+                )
+            }
             composable<Stats> { StatsScreen() }
             composable<Budget> { BudgetScreen() }
             composable<Recurring> {
-                SubScreenScaffold(stringResource(R.string.tv3_recurring), onBack = { navController.popBackStack() }) {
-                    RecurringScreen()
-                }
+                SubScreenScaffold(stringResource(R.string.tv3_recurring), onBack = back) { RecurringScreen() }
             }
             composable<Settings> {
                 SettingsScreen(
@@ -146,10 +169,10 @@ fun AppNavHost(navController: NavHostController = rememberNavController()) {
                     onOpenRecurring = { navController.navigate(Recurring) },
                 )
             }
-            composable<Categories> { CategoriesScreen(onBack = { navController.popBackStack() }) }
+            composable<Categories> { CategoriesScreen(onBack = back) }
             composable<TransactionForm> {
                 TransactionFormRoute(
-                    onNavigateBack = { navController.popBackStack() },
+                    onNavigateBack = back,
                     onSaved = { warnings ->
                         navController.popBackStack()
                         if (warnings.isNotEmpty()) {
@@ -161,4 +184,17 @@ fun AppNavHost(navController: NavHostController = rememberNavController()) {
             }
         }
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun HostTopBar(destination: Destination) {
+    val colors = MaterialTheme.colorScheme
+    CenterAlignedTopAppBar(
+        title = { Text(stringResource(destination.title), style = MaterialTheme.typography.bodyLarge) },
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor = colors.background,
+            titleContentColor = colors.onBackground,
+        ),
+    )
 }

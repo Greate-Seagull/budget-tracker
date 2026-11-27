@@ -1,50 +1,38 @@
 package com.lichsu.budget_tracker.ui.transactionform.components
 
-import androidx.annotation.DrawableRes
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material3.BottomSheetDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilledTonalIconButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalWindowInfo
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import com.lichsu.budget_tracker.ui.transactionform.components.icons.NormalIcon
-import com.lichsu.budget_tracker.ui.transactionform.components.labels.NormalText
-import com.lichsu.budget_tracker.ui.transactionform.components.labels.Title
-import kotlinx.coroutines.launch
+import com.lichsu.budget_tracker.R
+import com.lichsu.budget_tracker.ui.categories.CategoryUi
+import com.lichsu.budget_tracker.ui.components.buttons.NormalIcon
+import com.lichsu.budget_tracker.ui.components.dialogs.AppBottomSheet
+import com.lichsu.budget_tracker.ui.components.inputs.SearchBar
+import com.lichsu.budget_tracker.ui.components.text.NormalText
 
-data class CategoryUi(val id: Long, val name: String, @DrawableRes val iconRes: Int)
+/** Chỉ hiện ô tìm kiếm khi có nhiều hơn số này danh mục. */
+private const val SEARCH_THRESHOLD = 8
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CategoryPickerSheet(
     categories: List<CategoryUi>,
@@ -52,40 +40,12 @@ fun CategoryPickerSheet(
     onSelected: (Long) -> Unit,
     trigger: @Composable (open: () -> Unit) -> Unit,
 ) {
-    var show by rememberSaveable { mutableStateOf(false) }
-
-    trigger { show = true }
-    val onDismiss = { show = false }
-
-    if (!show)
-        return
-
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    val scope = rememberCoroutineScope()
-
-    // Chạy animation đóng xong mới báo ra ngoài
-    fun close(afterClose: () -> Unit = {}) {
-        scope.launch { sheetState.hide() }.invokeOnCompletion {
-            if (!sheetState.isVisible) {
-                afterClose()
-                onDismiss()
-            }
-        }
-    }
-
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        sheetState = sheetState,
-        dragHandle = { BottomSheetDefaults.DragHandle() },
-    ) {
-        SheetHeader(
-            title = "Chọn danh mục",
-            onClose = { close() }
-        )
+    AppBottomSheet(title = stringResource(R.string.category_picker_title), trigger = trigger) { close, expand ->
         CategoryPickerContent(
             categories = categories,
             selectedId = selectedId,
             onSelected = { close { onSelected(it.id) } },
+            onSearchFocused = expand,
         )
     }
 }
@@ -94,88 +54,53 @@ fun CategoryPickerSheet(
 fun CategoryPickerContent(
     categories: List<CategoryUi>,
     selectedId: Long?,
-    onSelected: (CategoryUi) -> Unit,
     modifier: Modifier = Modifier,
+    onSelected: (CategoryUi) -> Unit,
+    onSearchFocused: () -> Unit = {},
 ) {
     var query by rememberSaveable { mutableStateOf("") }
-    val showSearch = categories.size > 8
+    val filtered = remember(categories, query) { categories.filterByName(query) }
 
-    val filtered = remember(categories, query) {
-        if (query.isBlank()) categories
-        else categories.filter { it.name.contains(query.trim(), ignoreCase = true) }
+    if (categories.size > SEARCH_THRESHOLD) {
+        SearchBar(
+            query = query,
+            onQueryChange = { query = it },
+            onFocused = onSearchFocused,
+        )
     }
 
-    Column(modifier.fillMaxWidth().imePadding()) {
-        NormalText("Chọn danh mục", Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
-
-        if (showSearch) {
-            OutlinedTextField(
-                value = query,
-                onValueChange = { query = it },
-                placeholder = { Text("Tìm danh mục") },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
+    val maxHeight = with(LocalDensity.current) {
+        LocalWindowInfo.current.containerSize.height.toDp()
+    }
+    LazyColumn(modifier = modifier.heightIn(max = maxHeight)) {
+        items(filtered, key = { it.id }) { category ->
+            CategoryRow(
+                category = category,
+                selected = category.id == selectedId,
+                onClick = { onSelected(category) },
             )
         }
-
-        LazyColumn(contentPadding = PaddingValues(bottom = 24.dp)) {
-            items(filtered, key = { it.id }) { category ->
-                val selected = category.id == selectedId
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onSelected(category) }
-                        .padding(horizontal = 16.dp, vertical = 12.dp)
-                ) {
-                    CircleIcon(category.iconRes)
-                    Spacer(Modifier.width(14.dp))
-                    NormalText(category.name, Modifier.weight(1f))
-                    if (selected) {
-                        Icon(
-                            Icons.Default.Check, contentDescription = "Đã chọn",
-                            tint = MaterialTheme.colorScheme.primary)
-                    }
-                }
-            }
-            if (filtered.isEmpty()) {
-                item { NormalText("Không tìm thấy", Modifier.padding(16.dp)) }
-            }
+        if (filtered.isEmpty()) {
+            item { NormalText(stringResource(R.string.category_not_found)) }
         }
     }
 }
 
+private fun List<CategoryUi>.filterByName(query: String): List<CategoryUi> =
+    if (query.isBlank()) this
+    else filter { it.name.contains(query.trim(), ignoreCase = true) }
+
 @Composable
-private fun SheetHeader(
-    title: String,
-    onClose: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
+private fun CategoryRow(category: CategoryUi, selected: Boolean, onClick: () -> Unit) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = modifier
+        modifier = Modifier
             .fillMaxWidth()
-            .padding(start = 24.dp, end = 16.dp, top = 4.dp, bottom = 8.dp)
+            .clip(MaterialTheme.shapes.medium)
+            .clickable(onClick = onClick)
+            .padding(14.dp),
     ) {
-        Title(
-            label = title,
-            modifier = Modifier.weight(1f)
-        )
-
-        FilledTonalIconButton(
-            onClick = onClose,
-            modifier = Modifier.size(40.dp),
-            colors = IconButtonDefaults.filledTonalIconButtonColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainerHighest
-            )
-        ) {
-//            NormalIcon(Icons.Default.Close)
-            Icon(
-                imageVector = Icons.Default.Close,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onBackground,
-                modifier = Modifier.size(24.dp)
-            )
-        }
+        NormalText(category.name, Modifier.weight(1f))
+        if (selected) NormalIcon(Icons.Default.Check)
     }
 }

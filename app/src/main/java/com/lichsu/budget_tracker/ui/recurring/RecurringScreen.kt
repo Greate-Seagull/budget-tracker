@@ -37,12 +37,12 @@ import com.lichsu.budget_tracker.data.local.entity.recurring.RecurringRuleEntity
 import com.lichsu.budget_tracker.data.local.entity.transactions.TransactionType
 import com.lichsu.budget_tracker.domain.AmountResult
 import com.lichsu.budget_tracker.domain.AmountValidator
+import com.lichsu.budget_tracker.ui.categories.CategoryUi
 import com.lichsu.budget_tracker.ui.components.FinanceCard
+import com.lichsu.budget_tracker.ui.components.buttons.ChoosingButton
+import com.lichsu.budget_tracker.ui.components.buttons.PrimaryButton
+import com.lichsu.budget_tracker.ui.components.inputs.SegmentedSwitch
 import com.lichsu.budget_tracker.ui.transactionform.components.CategoryPickerSheet
-import com.lichsu.budget_tracker.ui.transactionform.components.CategoryUi
-import com.lichsu.budget_tracker.ui.transactionform.components.Switch
-import com.lichsu.budget_tracker.ui.transactionform.components.buttons.ChoosingButton
-import com.lichsu.budget_tracker.ui.transactionform.components.buttons.PrimaryButton
 import com.lichsu.budget_tracker.util.MoneyFormat
 import kotlinx.coroutines.launch
 import kotlin.coroutines.cancellation.CancellationException
@@ -169,7 +169,12 @@ private fun RecurringDialog(
 
     val scope = rememberCoroutineScope()
     val type = TransactionType.valueOf(typeName)
-    val options = categories.filter { it.type == type }.map { CategoryUi(it.id, it.name, R.drawable.ic_category) }
+    val options = categories.filter { it.type == type }.map {
+        CategoryUi(
+            it.id,
+            it.name,
+        )
+    }
     val selected = options.find { it.id == categoryId }
     val amount = (AmountValidator.validate(amountText) as? AmountResult.Valid)?.value
     val day = dayText.toIntOrNull()?.takeIf { it in 1..31 }
@@ -186,7 +191,7 @@ private fun RecurringDialog(
                 modifier = Modifier.verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                Switch(TransactionType.entries, type, { value ->
+                SegmentedSwitch(TransactionType.entries, type, { value ->
                     if (!saving && value != type) {
                         typeName = value.name
                         categoryId = null

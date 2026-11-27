@@ -27,9 +27,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import com.lichsu.budget_tracker.R
+import com.lichsu.budget_tracker.ui.components.buttons.CircleIcon
 import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -37,20 +39,13 @@ import kotlinx.coroutines.delay
 fun NoteInput(
     note: String,
     onNoteChange: (String) -> Unit,
-    maxLength: Int = 60
+    maxLength: Int = 60,
 ) {
     val bringIntoView = remember { BringIntoViewRequester() }
     val focusManager = LocalFocusManager.current
     var focused by remember { mutableStateOf(false) }
 
-    val imeBottom = WindowInsets.ime.getBottom(LocalDensity.current)
-
-    LaunchedEffect(focused, imeBottom) {
-        if (focused && imeBottom > 0) {
-            delay(80)                      // đợi chiều cao bàn phím ngừng đổi
-            bringIntoView.bringIntoView()
-        }
-    }
+    ScrollIntoViewWhenKeyboardOpens(bringIntoView, focused)
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -75,11 +70,7 @@ fun NoteInput(
                 .weight(1f)
                 .onFocusChanged { focused = it.isFocused },
             decorationBox = { inner ->
-                if (note.isEmpty()) Text(
-                    "Ghi chú",
-                    color = MaterialTheme.colorScheme.tertiary,
-                    style = MaterialTheme.typography.titleSmall
-                )
+                if (note.isEmpty()) NotePlaceholder()
                 inner()
             },
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
@@ -91,7 +82,33 @@ fun NoteInput(
         Text(
             text = "${note.length}/$maxLength",
             color = MaterialTheme.colorScheme.tertiary,
-            style = MaterialTheme.typography.titleSmall
+            style = MaterialTheme.typography.titleSmall,
         )
+    }
+}
+
+@Composable
+private fun NotePlaceholder() {
+    Text(
+        stringResource(R.string.form_note_hint),
+        color = MaterialTheme.colorScheme.tertiary,
+        style = MaterialTheme.typography.titleSmall,
+    )
+}
+
+/** Khi đang focus và bàn phím mở, cuộn ô nhập vào vùng nhìn thấy. */
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun ScrollIntoViewWhenKeyboardOpens(
+    requester: BringIntoViewRequester,
+    focused: Boolean,
+) {
+    val imeBottom = WindowInsets.ime.getBottom(LocalDensity.current)
+
+    LaunchedEffect(focused, imeBottom) {
+        if (focused && imeBottom > 0) {
+            delay(80)                      // đợi chiều cao bàn phím ngừng đổi
+            requester.bringIntoView()
+        }
     }
 }

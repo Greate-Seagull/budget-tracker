@@ -1,7 +1,6 @@
 package com.lichsu.budget_tracker
 
 import android.app.Application
-
 import dagger.hilt.android.HiltAndroidApp
 import timber.log.Timber
 

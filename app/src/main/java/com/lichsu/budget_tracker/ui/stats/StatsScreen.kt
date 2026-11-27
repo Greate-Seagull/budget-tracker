@@ -28,8 +28,8 @@ import com.lichsu.budget_tracker.data.local.dao.MonthlyExpenseTotals
 import com.lichsu.budget_tracker.data.local.entity.transactions.TransactionType
 import com.lichsu.budget_tracker.ui.components.FinanceCard
 import com.lichsu.budget_tracker.ui.components.FinanceMonthSwitcher
+import com.lichsu.budget_tracker.ui.components.inputs.SegmentedSwitch
 import com.lichsu.budget_tracker.ui.components.monthLabel
-import com.lichsu.budget_tracker.ui.transactionform.components.Switch
 import com.lichsu.budget_tracker.util.MoneyFormat
 import java.time.YearMonth
 import kotlin.math.abs
@@ -45,7 +45,7 @@ fun StatsScreen(viewModel: StatsViewModel = hiltViewModel()) {
         item { FinanceMonthSwitcher(state.month, viewModel::shiftMonth) }
         item {
             Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                Switch(
+                SegmentedSwitch(
                     TransactionType.entries,
                     state.type,
                     viewModel::selectType,
