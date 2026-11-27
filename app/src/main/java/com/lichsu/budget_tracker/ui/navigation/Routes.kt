@@ -19,3 +19,9 @@ data class TransactionForm(val id: Long? = null)
 
 @Serializable
 object Transactions
+
+@Serializable
+data object Settings
+
+@Serializable
+data object Categories
