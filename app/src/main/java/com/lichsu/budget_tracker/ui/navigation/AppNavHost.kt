@@ -1,6 +1,11 @@
 package com.lichsu.budget_tracker.ui.navigation
 
 import androidx.annotation.StringRes
+import androidx.compose.animation.core.EaseIn
+import androidx.compose.animation.core.EaseOutSine
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.padding
@@ -8,19 +13,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Settings as SettingsIcon // tránh trùng tên route Settings
-import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -46,6 +43,11 @@ import com.lichsu.budget_tracker.ui.settings.SettingsScreen
 import com.lichsu.budget_tracker.ui.settings.SubScreenScaffold
 import com.lichsu.budget_tracker.ui.stats.StatsScreen
 import com.lichsu.budget_tracker.ui.transactionform.TransactionFormRoute
+import com.lichsu.budget_tracker.ui.transactions.TransactionsRoute
+import kotlinx.coroutines.launch
+import androidx.compose.material.icons.filled.Settings as SettingsIcon
+
+private const val PARALLAX = 4 // màn cũ chỉ dịch 1/4 chiều rộng
 import kotlinx.coroutines.launch
 
 private data class Destination(
@@ -86,45 +88,27 @@ fun AppNavHost(navController: NavHostController = rememberNavController()) {
         contentColor = colors.onBackground,
         contentWindowInsets = WindowInsets(0),
         snackbarHost = { SnackbarHost(snackbar) },
-        topBar = {
-            if (active != null) {
-                CenterAlignedTopAppBar(
-                    title = {
-                        Text(stringResource(active.title), style = MaterialTheme.typography.bodyLarge)
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = colors.background,
-                        titleContentColor = colors.onBackground,
-                    ),
-                )
-            }
-        },
-        bottomBar = {
-            if (active != null) {
-                NavigationBar(containerColor = colors.secondary) {
-                    destinations.forEach { destination ->
-                        NavigationBarItem(
-                            selected = destination == active,
-                            onClick = { if (destination != active) select(destination.route) },
-                            icon = { Icon(destination.icon, contentDescription = null) },
-                            label = { Text(stringResource(destination.label)) },
-                            colors = NavigationBarItemDefaults.colors(
-                                selectedIconColor = colors.onPrimary,
-                                selectedTextColor = colors.onSecondary,
-                                indicatorColor = colors.primary,
-                                unselectedIconColor = colors.onSecondary,
-                                unselectedTextColor = colors.onSecondary,
-                            ),
-                        )
-                    }
-                }
-            }
-        },
+        topBar = { /* giữ nguyên như bản kia */ },
+        bottomBar = { /* giữ nguyên như bản kia */ },
     ) { padding ->
         NavHost(
-            navController,
-            startDestination = Home,
+            navController = navController,
+            startDestination = Home, // hoặc Transactions, xem ghi chú bên dưới
             modifier = Modifier.padding(padding).consumeWindowInsets(padding),
+
+            // ---- Hiệu ứng của bạn ----
+            enterTransition = {
+                slideInHorizontally(tween(560, easing = EaseOutSine)) { it }
+            },
+            exitTransition = {
+                slideOutHorizontally(tween(560, easing = EaseOutSine)) { -it / PARALLAX }
+            },
+            popEnterTransition = {
+                slideInHorizontally(tween(500, easing = EaseIn)) { -it / PARALLAX }
+            },
+            popExitTransition = {
+                slideOutHorizontally(tween(500, easing = EaseIn)) { it }
+            },
         ) {
             composable<Home> {
                 Tv3HomeRoute(
@@ -133,6 +117,15 @@ fun AppNavHost(navController: NavHostController = rememberNavController()) {
                     onEditTransaction = { navController.navigate(TransactionForm(it)) },
                 )
             }
+
+            // ---- Màn của bạn ----
+            composable<Transactions> {
+                TransactionsRoute(
+                    onAddTransaction = { navController.navigate(TransactionForm()) },
+                    onModifyTransaction = { id -> navController.navigate(TransactionForm(id)) },
+                )
+            }
+
             composable<Stats> { StatsScreen() }
             composable<Budget> { BudgetScreen() }
             composable<Recurring> {
